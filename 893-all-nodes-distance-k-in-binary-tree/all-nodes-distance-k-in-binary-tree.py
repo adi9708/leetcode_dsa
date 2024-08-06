@@ -6,48 +6,29 @@
 #         self.right = None
 
 class Solution:
+
     def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> List[int]:
-        _dict = {}
-        self.buildgraph(root, None, _dict)
-        q = [(target, 0)]
+        graph = defaultdict(list)
 
-        visited = set([target])
-        res = []
+        def buildGraph(node, parent, graph):
+            if node:
+                if parent:
+                    graph[node.val].append(parent.val)
+                    graph[parent.val].append(node.val)
+                buildGraph(node.left, node, graph)
+                buildGraph(node.right, node, graph)
+        
+        buildGraph(root, None, graph)
 
-        while q:
-            node, dist = q.pop(0)
+        # Use BFS to find nodes at distance K
+        queue = deque([(target.val, 0)])
+        seen = {target.val}
+        while queue:
+            node, dist = queue.popleft()
             if dist == k:
-                res.append(node.val)
-
-            if dist > k:
-                break
-
-            for neigh in _dict[node]:
-                if neigh not in visited:
-                    visited.add(neigh)
-                    q.append((neigh, dist + 1))
-        
-        return res
-        
-    def buildgraph(self, node, parent, _dict):
-        if not node: return 
-
-        if node not in _dict: 
-            _dict[node] = []
-
-        if parent:
-            _dict[node].append(parent)
-            _dict[parent].append(node)
-        
-
-
-
-
-
-
-
-        
-        self.buildgraph(node.left, node, _dict)
-        self.buildgraph(node.right, node, _dict)
-
-        
+                return [node for node, d in queue] + [node]
+            for neighbor in graph[node]:
+                if neighbor not in seen:
+                    seen.add(neighbor)
+                    queue.append((neighbor, dist + 1))
+        return []
